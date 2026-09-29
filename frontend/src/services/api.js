@@ -184,5 +184,79 @@ export const api = {
       throw new Error(err.detail || `Inference failed: ${res.statusText}`);
     }
     return res.json();
+  },
+
+  // Phase 5 — Global Vehicle Intelligence & Multi-Camera Re-ID
+  async searchVehicles(params = {}) {
+    const query = new URLSearchParams();
+    if (params.plate) query.append('plate', params.plate);
+    if (params.global_id) query.append('global_id', params.global_id);
+    if (params.vehicle_type) query.append('vehicle_type', params.vehicle_type);
+    if (params.color) query.append('color', params.color);
+    if (params.colour) query.append('colour', params.colour);
+
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${API_BASE}/vehicles${qs}`);
+    if (!res.ok) throw new Error(`Failed to search vehicles: ${res.statusText}`);
+    return res.json();
+  },
+
+  async getVehicle(globalId) {
+    const res = await fetch(`${API_BASE}/vehicles/${encodeURIComponent(globalId)}`);
+    if (!res.ok) throw new Error(`Failed to fetch vehicle ${globalId}: ${res.statusText}`);
+    return res.json();
+  },
+
+  async getVehicleTrajectories(globalId) {
+    const res = await fetch(`${API_BASE}/vehicles/${encodeURIComponent(globalId)}/trajectories`);
+    if (!res.ok) throw new Error(`Failed to fetch trajectories for ${globalId}: ${res.statusText}`);
+    return res.json();
+  },
+
+  async matchReID(payload) {
+    const res = await fetch(`${API_BASE}/vehicles/reid/match`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Re-ID Match request failed: ${res.statusText}`);
+    }
+    return res.json();
+  },
+
+  async compareObservations(payload) {
+    const res = await fetch(`${API_BASE}/reid/compare`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Re-ID Comparison failed: ${res.statusText}`);
+    }
+    return res.json();
+  },
+
+  async getReIDMatches(params = {}) {
+    const query = new URLSearchParams();
+    if (params.decision) query.append('decision', params.decision);
+    if (params.camera_id) query.append('camera_id', params.camera_id);
+    if (params.tracker_id) query.append('tracker_id', params.tracker_id);
+    if (params.limit) query.append('limit', params.limit);
+    if (params.offset) query.append('offset', params.offset);
+
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${API_BASE}/reid/matches${qs}`);
+    if (!res.ok) throw new Error(`Failed to fetch Re-ID matches: ${res.statusText}`);
+    return res.json();
+  },
+
+  async getReIDStats() {
+    const res = await fetch(`${API_BASE}/reid/stats`);
+    if (!res.ok) throw new Error(`Failed to fetch Re-ID stats: ${res.statusText}`);
+    return res.json();
   }
 };
+

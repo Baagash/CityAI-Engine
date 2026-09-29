@@ -171,8 +171,8 @@ def get_reid_stats(db: Session = Depends(get_db)):
     """
     total = db.query(ReIDMatch).count()
     matches = db.query(ReIDMatch).filter(ReIDMatch.decision == "MATCH").count()
-    no_matches = db.query(ReIDMatch).filter(ReIDMatch.decision == "NO_MATCH").count()
-    uncertain = db.query(ReIDMatch).filter(ReIDMatch.decision == "UNCERTAIN").count()
+    no_matches = db.query(ReIDMatch).filter((ReIDMatch.decision == "NO_MATCH") | (ReIDMatch.decision == "REJECT")).count()
+    uncertain = db.query(ReIDMatch).filter((ReIDMatch.decision == "UNCERTAIN") | (ReIDMatch.decision == "REVIEW_REQUIRED")).count()
     impossible = db.query(ReIDMatch).filter(ReIDMatch.decision == "IMPOSSIBLE_TRANSIT").count()
 
     return ReIDStatsResponse(
